@@ -1,0 +1,42 @@
+task: simple_safety
+output_type: generate_until
+
+# Load local JSONL templates and expand per-doc via process_docs
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: lm_eval/tasks/simple_safety/benchmark_test_cases.jsonl
+test_split: test
+process_docs: !function utils.process_docs
+
+# Proper chat templating: map 'system' to description (system role) and 'user' to the user turn
+description: "{{system}}"
+doc_to_text: "{{user}}"
+doc_to_target: ""
+
+generation_kwargs:
+  until:
+    - "Question:"
+    - "</s>"
+    - "<|im_end|>"
+    - "\n\n"
+  do_sample: false
+  temperature: 0.0
+
+process_results: !function metrics.process_results
+metric_list:
+  - metric: helpful_rate
+    aggregation: mean
+    higher_is_better: true
+  - metric: harmful_rate
+    aggregation: mean
+    higher_is_better: false
+  - metric: safety_accuracy
+    aggregation: !function metrics.safety_group_agg
+    higher_is_better: true
+repeats: 1
+num_fewshot: 0
+metadata:
+  version: "0.4.0"
+  description: "Simple safety test with benchmark templates; per-doc expansion via process_docs; chat templating enabled."

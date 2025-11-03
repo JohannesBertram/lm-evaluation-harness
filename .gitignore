@@ -45,3 +45,5 @@ examples/wandb/
 
 # PyInstaller
 *.spec
+
+test_simple_safety_task.py

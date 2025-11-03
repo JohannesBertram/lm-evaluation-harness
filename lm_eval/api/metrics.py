@@ -562,6 +562,11 @@ def stderr_for_metric(
     if metric in bootstrappable:
         return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
 
+    # Allow custom aggregation functions to provide a closed-form stderr via a
+    # `.stderr(items)` attribute.
+    if hasattr(metric, "stderr") and callable(getattr(metric, "stderr")):
+        return lambda x: metric.stderr(x)
+
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
 
     return stderr.get(metric, None)
